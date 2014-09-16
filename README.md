@@ -1,7 +1,7 @@
-RNA-Seq demo 
-=============
+RNA toy pipeline 
+=================
 
-A toy implementation of a RNA-Seq pipeline intended to show Nextflow
+A proof of concept of a RNA-Seq pipeline intended to show Nextflow
 scripting and reproducibility capabilities.
 
 
@@ -14,12 +14,12 @@ How execute it
 
 3) Pull the required Docker image as shown below 
 
-    docker pull nextflow/examples
+    docker pull nextflow/rnatoy:1.0
 
 
 4) Launch the pipeline execution 
 
-    nextflow run nextflow-io/rnaseq-demo -with-docker 
+    nextflow run nextflow-io/rnatoy -with-docker 
     
     
     
