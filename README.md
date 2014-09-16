@@ -1,4 +1,4 @@
-RNA toy pipeline 
+Toy RNA pipeline 
 =================
 
 A proof of concept of a RNA-Seq pipeline intended to show Nextflow
