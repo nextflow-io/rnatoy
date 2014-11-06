@@ -4,22 +4,34 @@
  */
 params.pair1 = "$baseDir/data/ggal/*_1.fq"
 params.pair2 = "$baseDir/data/ggal/*_2.fq"
+params.annot = "$baseDir/data/ggal/ggal_1_48850000_49020000.bed.gff"
 params.genome = "$baseDir/data/ggal/ggal_1_48850000_49020000.Ggal71.500bpflank.fa"
+params.chunkSize = 1000
  
 /*
  * emits all reads ending with "_1" suffix and map them to pair containing the common
  * part of the name
  */
-reads1 = Channel
+reads1 = Channel.create()
+Channel
     .fromPath( params.pair1 )
     .map {  path -> [ path.baseName[0..-2], path ] }
+    .subscribe { tuple -> 
+        def (id, path) = tuple
+        path.splitFastq(by: params.chunkSize, into:reads1 ) { chunk -> [ id, chunk ] }
+    }
   
 /*
  * as above for "_2" read pairs
  */
-reads2 = Channel
+reads2 = Channel.create()
+Channel
     .fromPath( params.pair2 )
     .map {  path -> [ path.baseName[0..-2], path ] }
+    .subscribe { tuple -> 
+        def (id, path) = tuple
+        path.splitFastq(by: params.chunkSize, into:reads2 ) { chunk -> [ id, chunk ] }
+    }
      
 /*
  * Match the pairs emittedb by "read1" and "read2" channels having the same 'key'
@@ -33,6 +45,7 @@ read_pairs = reads1
  * the reference genome file
  */
 genome_file = file(params.genome)
+annotation_file = file(params.annot)
  
  
 /*
@@ -57,7 +70,8 @@ process buildIndex {
 process mapping {
      
     input:
-    file genome_file
+    file 'genome.index.fa' from genome_file 
+    file annotation_file
     file genome_index from genome_index.first()
     set pair_id, file(read1), file(read2) from read_pairs
  
@@ -65,17 +79,37 @@ process mapping {
     set pair_id, "tophat_out/accepted_hits.bam" into bam
  
     """
-    tophat2 genome.index ${read1} ${read2}
+    tophat2 --GTF $annotation_file genome.index ${read1} ${read2}
     """
 }
- 
- 
+
+group_bam = bam
+                .groupBy()
+                .flatMap()
+                .map { [it.key, it.value.collect { it[1] } ] }
+  
+
+process merge {
+    
+    input: 
+    set pair_id, file('bam?') from group_bam 
+    
+    output: 
+    set pair_id, file('merge.bam') into merged_bam 
+    
+    """
+    samtools merge merge.bam bam*
+    """
+
+}
+
+
 /*
- * Step 3. Assemples the transcript by using the "cufflinks" 
+ * Step 4. Assemples the transcript by using the "cufflinks" 
  */
 process makeTranscript {
     input:
-    set pair_id, bam_file from bam
+    set pair_id, bam_file from merged_bam
      
     output:
     set pair_id, 'transcripts.gtf' into transcripts
@@ -86,11 +120,10 @@ process makeTranscript {
 }
  
 /*
- * Step 4. Collects the trabscripts files and print them
+ * Step 5. Collects the trabscripts files and print them
  */
 transcripts
   .collectFile() {
      [ "${it[0]}transcript", it[1] ]
   }
   .subscribe { println it }
-  
