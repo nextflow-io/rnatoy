@@ -6,32 +6,29 @@ params.pair1 = "$baseDir/data/ggal/*_1.fq"
 params.pair2 = "$baseDir/data/ggal/*_2.fq"
 params.annot = "$baseDir/data/ggal/ggal_1_48850000_49020000.bed.gff"
 params.genome = "$baseDir/data/ggal/ggal_1_48850000_49020000.Ggal71.500bpflank.fa"
-params.chunkSize = 1000
+params.chunkSize = 1_000
  
 /*
  * emits all reads ending with "_1" suffix and map them to pair containing the common
  * part of the name
  */
-reads1 = Channel.create()
-Channel
-    .fromPath( params.pair1 )
-    .map {  path -> [ path.baseName[0..-2], path ] }
-    .subscribe { tuple -> 
-        def (id, path) = tuple
-        path.splitFastq(by: params.chunkSize, into:reads1 ) { chunk -> [ id, chunk ] }
-    }
+
+reads1 = Channel
+            .fromPath( params.pair1 )
+            .splitFastq(by: params.chunkSize) { chunk, file -> 
+               tuple( file[0..-5], chunk ) 
+            }
   
 /*
  * as above for "_2" read pairs
  */
-reads2 = Channel.create()
-Channel
-    .fromPath( params.pair2 )
-    .map {  path -> [ path.baseName[0..-2], path ] }
-    .subscribe { tuple -> 
-        def (id, path) = tuple
-        path.splitFastq(by: params.chunkSize, into:reads2 ) { chunk -> [ id, chunk ] }
-    }
+
+reads2 = Channel
+            .fromPath( params.pair2 )
+            .splitFastq(by: params.chunkSize) { chunk, file -> 
+               tuple( file[0..-5], chunk ) 
+            }
+  
      
 /*
  * Match the pairs emittedb by "read1" and "read2" channels having the same 'key'
@@ -83,10 +80,7 @@ process mapping {
     """
 }
 
-group_bam = bam
-                .groupBy()
-                .flatMap()
-                .map { [it.key, it.value.collect { it[1] } ] }
+group_bam = bam.collectTuple()
   
 
 process merge {
