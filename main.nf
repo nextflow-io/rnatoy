@@ -8,20 +8,29 @@ params.suffix = 8
 params.annot = "$baseDir/data/ggal/ggal_1_48850000_49020000.bed.gff"
 params.genome = "$baseDir/data/ggal/ggal_1_48850000_49020000.Ggal71.500bpflank.fa"
 params.chunkSize = 1_0000_000
+
+log.info "R N A T O Y   P I P E L I N E      "
+log.info "================================="
+log.info "genome             : ${params.genome}"
+log.info "annotat            : ${params.annot}"
+log.info "pair1              : ${params.pair1}"
+log.info "pair2              : ${params.pair2}"
+log.info "chunkSize          : ${params.chunkSize}"
+log.info "suffix             : ${params.suffix}" 
+
  
 /*
  * emits all reads ending with "_1" suffix and map them to pair containing the common
  * part of the name
  */
 
-
-count1 = 0
 reads1 = Channel
             .fromPath( params.pair1 )
-            .splitFastq(by: params.chunkSize) { chunk, file -> 
-               def split = cacheableFile("${file}_${count1++}.fastq")
+            .splitFastq(by: params.chunkSize, meta: 'path') { chunk, path -> 
+               def split = cacheableFile(path)
                if(!split.exists()) split.text = chunk 
-               tuple( file[0..-params.suffix], split ) 
+               log.debug "read1 split: $split"
+               tuple( path.name[0..-params.suffix], split ) 
             }
   
 /*
@@ -31,12 +40,12 @@ reads1 = Channel
 count2 = 0
 reads2 = Channel
             .fromPath( params.pair2 )
-            .splitFastq(by: params.chunkSize) { chunk, file -> 
-               def split = cacheableFile("${file}_${count2++}.fastq")
-               if(!split.exists()) split.text = chunk 
-               tuple( file[0..-params.suffix], split ) 
-            }
-  
+            .splitFastq(by: params.chunkSize, meta: 'path') { chunk, path ->
+               def split = cacheableFile(path)
+               if(!split.exists()) split.text = chunk
+               log.debug "read2 split: $split"
+               tuple( path.name[0..-params.suffix], split )
+            } 
      
 /*
  * Match the pairs emittedb by "read1" and "read2" channels having the same 'key'
@@ -134,3 +143,8 @@ transcripts
      [ "${it[0]}transcript", it[1] ]
   }
   .subscribe { println it }
+
+
+
+
+
