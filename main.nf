@@ -2,31 +2,39 @@
  * Defines some parameters in order to specify the refence genomes
  * and read pairs by using the command line options
  */
-params.pair1 = "$baseDir/data/ggal/*_1.fq"
-params.pair2 = "$baseDir/data/ggal/*_2.fq"
+params.pair1 = "$baseDir/data/ggal/*_1.fq.gz"
+params.pair2 = "$baseDir/data/ggal/*_2.fq.gz"
+params.suffix = 8
 params.annot = "$baseDir/data/ggal/ggal_1_48850000_49020000.bed.gff"
 params.genome = "$baseDir/data/ggal/ggal_1_48850000_49020000.Ggal71.500bpflank.fa"
-params.chunkSize = 1_000
+params.chunkSize = 1_0000_000
  
 /*
  * emits all reads ending with "_1" suffix and map them to pair containing the common
  * part of the name
  */
 
+
+count1 = 0
 reads1 = Channel
             .fromPath( params.pair1 )
             .splitFastq(by: params.chunkSize) { chunk, file -> 
-               tuple( file[0..-5], chunk ) 
+               def split = cacheableFile("${file}_${count1++}.fastq")
+               if(!split.exists()) split.text = chunk 
+               tuple( file[0..-params.suffix], split ) 
             }
   
 /*
  * as above for "_2" read pairs
  */
 
+count2 = 0
 reads2 = Channel
             .fromPath( params.pair2 )
             .splitFastq(by: params.chunkSize) { chunk, file -> 
-               tuple( file[0..-5], chunk ) 
+               def split = cacheableFile("${file}_${count2++}.fastq")
+               if(!split.exists()) split.text = chunk 
+               tuple( file[0..-params.suffix], split ) 
             }
   
      
@@ -92,7 +100,12 @@ process merge {
     set pair_id, file('merge.bam') into merged_bam 
     
     """
+    count=`ls -l bam* | wc -l`
+    if [ "\$count" -gt "1" ]; then 
     samtools merge merge.bam bam*
+    else
+    cp bam* merge.bam   
+    fi
     """
 
 }
