@@ -24,15 +24,16 @@ log.info "suffix             : ${params.suffix}"
  * part of the name
  */
 
+count1 = 0
 reads1 = Channel
             .fromPath( params.pair1 )
             .splitFastq(by: params.chunkSize, meta: 'path') { chunk, path -> 
-               def split = cacheableFile(path)
+               def split = cacheableFile([path,count1++], "chunk1_${count1}.fastq")
                if(!split.exists()) split.text = chunk 
                log.debug "read1 split: $split"
                tuple( path.name[0..-params.suffix], split ) 
             }
-  
+
 /*
  * as above for "_2" read pairs
  */
@@ -41,7 +42,7 @@ count2 = 0
 reads2 = Channel
             .fromPath( params.pair2 )
             .splitFastq(by: params.chunkSize, meta: 'path') { chunk, path ->
-               def split = cacheableFile(path)
+               def split = cacheableFile([path,count2++], "chunk2_${count2}.fastq")
                if(!split.exists()) split.text = chunk
                log.debug "read2 split: $split"
                tuple( path.name[0..-params.suffix], split )
@@ -97,7 +98,7 @@ process mapping {
     """
 }
 
-group_bam = bam.collectTuple()
+group_bam = bam.groupTuple(sort:'hash')
   
 
 process merge {
