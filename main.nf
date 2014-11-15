@@ -132,7 +132,7 @@ process makeTranscript {
     set pair_id, 'transcripts.gtf' into transcripts
  
     """
-    cufflinks ${bam_file}
+    cufflinks -p ${task.cpus} ${bam_file}
     """
 }
  
