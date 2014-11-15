@@ -107,14 +107,14 @@ process merge {
     set pair_id, file('bam?') from group_bam 
     
     output: 
-    set pair_id, file('merge.bam') into merged_bam 
+    set pair_id, file('*.merge.bam') into merged_bam 
     
     """
     count=`ls -l bam* | wc -l`
     if [ "\$count" -gt "1" ]; then 
-    samtools merge merge.bam bam*
+    samtools merge ${pair_id}.merge.bam bam*
     else
-    cp bam* merge.bam   
+    cp bam* ${pair_id}.merge.bam  
     fi
     """
 
@@ -126,24 +126,25 @@ process merge {
  */
 process makeTranscript {
     input:
-    set pair_id, bam_file from merged_bam
+    set pair_id, file(bam_file) from merged_bam
      
     output:
-    set pair_id, 'transcripts.gtf' into transcripts
+    set pair_id, file('transcripts.gtf') into transcripts
  
     """
+    echo Transcript: $pair_id
     cufflinks -p ${task.cpus} ${bam_file}
     """
 }
  
 /*
- * Step 5. Collects the trabscripts files and print them
+ * Step 5. Save trabscripts files and print them
  */
 transcripts
-  .collectFile() {
-     [ "${it[0]}transcript", it[1] ]
+  .subscribe { tuple ->
+    tuple[1].copyTo( "transcript_${tuple[0]}.gtf" )
+    println "Saving: transcript_${tuple[0]}.gtf"
   }
-  .subscribe { println it }
 
 
 
