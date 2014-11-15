@@ -94,7 +94,7 @@ process mapping {
     set pair_id, "tophat_out/accepted_hits.bam" into bam
  
     """
-    tophat2 --GTF $annotation_file genome.index ${read1} ${read2}
+    tophat2 -p ${task.cpus} --GTF $annotation_file genome.index ${read1} ${read2}
     """
 }
 
