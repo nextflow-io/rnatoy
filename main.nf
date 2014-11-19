@@ -126,14 +126,14 @@ process merge {
  */
 process makeTranscript {
     input:
+    file 'anno.gtf' from annotation_file
     set pair_id, file(bam_file) from merged_bam
      
     output:
     set pair_id, file('transcripts.gtf') into transcripts
  
     """
-    echo Transcript: $pair_id
-    cufflinks -p ${task.cpus} ${bam_file}
+    cufflinks --no-update-check -q -p ${task.cpus} -g anno.gtf ${bam_file}
     """
 }
  
