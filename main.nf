@@ -27,12 +27,14 @@ log.info "suffix             : ${params.suffix}"
 count1 = 0
 reads1 = Channel
             .fromPath( params.pair1 )
+            .ifEmpty { error "Cannot find any reads matching: ${params.pair1}" }
             .splitFastq(by: params.chunkSize, meta: 'path') { chunk, path -> 
                def split = cacheableFile([path,params.chunkSize,count1++], "chunk1_${count1}.fastq")
                if(!split.exists()) split.text = chunk 
                log.debug "read1 split: $split"
                tuple( path.name[0..-params.suffix], split ) 
             }
+            
 
 /*
  * as above for "_2" read pairs
@@ -41,6 +43,7 @@ reads1 = Channel
 count2 = 0
 reads2 = Channel
             .fromPath( params.pair2 )
+            .ifEmpty { error "Cannot find any reads matching: ${params.pair2}" }
             .splitFastq(by: params.chunkSize, meta: 'path') { chunk, path ->
                def split = cacheableFile([path,params.chunkSize,count2++], "chunk2_${count2}.fastq")
                if(!split.exists()) split.text = chunk
@@ -54,6 +57,7 @@ reads2 = Channel
  */
 read_pairs = reads1
         .phase(reads2)
+        .ifEmpty { error "Cannot find any matching reads" }
         .map { pair1, pair2 -> [ pair1[0], pair1[1], pair2[1] ] }
  
 /*
