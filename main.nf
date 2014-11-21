@@ -1,10 +1,37 @@
 /*
+ * Copyright (c) 2013, Centre for Genomic Regulation (CRG) and the authors.
+ *
+ *   This file is part of 'RNA-Toy'.
+ *
+ *   RNA-Toy is free software: you can redistribute it and/or modify
+ *   it under the terms of the GNU General Public License as published by
+ *   the Free Software Foundation, either version 3 of the License, or
+ *   (at your option) any later version.
+ *
+ *   RNA-Toy is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *   GNU General Public License for more details.
+ *
+ *   You should have received a copy of the GNU General Public License
+ *   along with RNA-Toy.  If not, see <http://www.gnu.org/licenses/>.
+ */
+ 
+/* 
+ * Proof of concept Nextflow based RNA-Seq pipeline
+ * 
+ * Authors
+ * Paolo Di Tommaso <paolo.ditommaso@gmail.com>
+ * Emilio Palumbo <emiliopalumbo@gmail.com> 
+ */ 
+
+ 
+/*
  * Defines some parameters in order to specify the refence genomes
  * and read pairs by using the command line options
  */
 params.pair1 = "$baseDir/data/ggal/*_1.fq.gz"
 params.pair2 = "$baseDir/data/ggal/*_2.fq.gz"
-params.suffix = 8
 params.annot = "$baseDir/data/ggal/ggal_1_48850000_49020000.bed.gff"
 params.genome = "$baseDir/data/ggal/ggal_1_48850000_49020000.Ggal71.500bpflank.fa"
 params.chunkSize = 1_0000_000
@@ -16,7 +43,6 @@ log.info "annotat            : ${params.annot}"
 log.info "pair1              : ${params.pair1}"
 log.info "pair2              : ${params.pair2}"
 log.info "chunkSize          : ${params.chunkSize}"
-log.info "suffix             : ${params.suffix}" 
 
  
 /*
@@ -29,10 +55,11 @@ reads1 = Channel
             .fromPath( params.pair1 )
             .ifEmpty { error "Cannot find any reads matching: ${params.pair1}" }
             .splitFastq(by: params.chunkSize, meta: 'path') { chunk, path -> 
-               def split = cacheableFile([path,params.chunkSize,count1++], "chunk1_${count1}.fastq")
+               def prefix = readPrefix(path, params.pair1)
+               def split = cacheableFile([path,params.chunkSize,count1++], "${prefix}_1_${count1}.fastq")
                if(!split.exists()) split.text = chunk 
                log.debug "read1 split: $split"
-               tuple( path.name[0..-params.suffix], split ) 
+               tuple( prefix, split ) 
             }
             
 
@@ -45,10 +72,11 @@ reads2 = Channel
             .fromPath( params.pair2 )
             .ifEmpty { error "Cannot find any reads matching: ${params.pair2}" }
             .splitFastq(by: params.chunkSize, meta: 'path') { chunk, path ->
-               def split = cacheableFile([path,params.chunkSize,count2++], "chunk2_${count2}.fastq")
+               def prefix = readPrefix(path, params.pair2)
+               def split = cacheableFile([path,params.chunkSize,count2++], "${prefix}_2_${count2}.fastq")
                if(!split.exists()) split.text = chunk
                log.debug "read2 split: $split"
-               tuple( path.name[0..-params.suffix], split )
+               tuple( prefix, split )
             } 
      
 /*
@@ -152,5 +180,42 @@ transcripts
 
 
 
+/* 
+ * Helper function, given a file Path 
+ * returns the file name region matching a specified glob pattern
+ * starting from the beginning of the name up to last matching group.
+ * 
+ * For example: 
+ *   readPrefix('/some/data/file_alpha_1.fa', 'file*_1.fa' )
+ * 
+ * Returns: 
+ *   'file_alpha'
+ */
+ 
+def readPrefix( Path actual, template ) {
+
+    final fileName = actual.getFileName().toString()
+
+    def filePattern = template.toString()
+    int p = filePattern.lastIndexOf('/')
+    if( p != -1 ) filePattern = filePattern.substring(p+1)
+    if( !filePattern.contains('*') && !filePattern.contains('?') ) 
+        filePattern = '*' + filePattern 
+  
+    def regex = filePattern.replace('.','\\.').replace('*','(.*)').replace('?','(.?)')
+
+    def matcher = (fileName =~ /$regex/  )
+    if( matcher.matches() ) { 
+        def end = matcher.end(matcher.groupCount() )      
+        def prefix = fileName.substring(0,end)
+        while(prefix.endsWith('-') || prefix.endsWith('_') || prefix.endsWith('.') ) 
+          prefix=prefix[0..-2]
+          
+        return prefix
+    }
+    
+    return null
+}
+  
 
 
