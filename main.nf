@@ -54,12 +54,10 @@ count1 = 0
 reads1 = Channel
             .fromPath( params.pair1 )
             .ifEmpty { error "Cannot find any reads matching: ${params.pair1}" }
-            .splitFastq(by: params.chunkSize, meta: 'path') { chunk, path -> 
-               def prefix = readPrefix(path, params.pair1)
-               def split = cacheableFile([path,params.chunkSize,count1++], "${prefix}_1_${count1}.fastq")
-               if(!split.exists()) split.text = chunk 
-               log.debug "read1 split: $split"
-               tuple( prefix, split ) 
+            .splitFastq(by: params.chunkSize, file: true) { chunk, source -> 
+               def prefix = readPrefix(source, params.pair1)
+               log.debug "read1 chunk: $chunk -- prefix: $prefix"
+               tuple( prefix, chunk ) 
             }
             
 
@@ -71,12 +69,10 @@ count2 = 0
 reads2 = Channel
             .fromPath( params.pair2 )
             .ifEmpty { error "Cannot find any reads matching: ${params.pair2}" }
-            .splitFastq(by: params.chunkSize, meta: 'path') { chunk, path ->
-               def prefix = readPrefix(path, params.pair2)
-               def split = cacheableFile([path,params.chunkSize,count2++], "${prefix}_2_${count2}.fastq")
-               if(!split.exists()) split.text = chunk
-               log.debug "read2 split: $split"
-               tuple( prefix, split )
+            .splitFastq(by: params.chunkSize, file:true) { chunk, source ->
+               def prefix = readPrefix(source, params.pair2)
+               log.debug "read2 chunk: $chunk -- prefix: $prefix"
+               tuple( prefix, chunk ) 
             } 
      
 /*
@@ -192,9 +188,9 @@ transcripts
  *   'file_alpha'
  */
  
-def readPrefix( Path actual, template ) {
+def readPrefix( actual, template ) {
 
-    final fileName = actual.getFileName().toString()
+    final fileName = actual instanceof Path ? actual.name : actual.toString()
 
     def filePattern = template.toString()
     int p = filePattern.lastIndexOf('/')
