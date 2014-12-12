@@ -133,7 +133,7 @@ process mapping {
 }
 
 /*
- * Step 3. Assemples the transcript by using the "cufflinks" 
+ * Step 4. Assembles the transcripts by using the "cufflinks" 
  */
 process makeTranscript {
     input:
@@ -149,7 +149,7 @@ process makeTranscript {
 }
  
 /*
- * Step 4. Collects the trabscripts files and print them
+ * Step 5. Collects the transcript files and print them
  */
 transcripts
   .subscribe { tuple ->
