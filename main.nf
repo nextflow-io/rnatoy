@@ -116,25 +116,22 @@ process buildIndex {
 }
 
 /*
- * Step 2. Maps each read-pair by using Tophat2 mapper tool
+ * Step 3. Maps each read-pair by using the Bowtie2 mapper tool
  */
 process mapping {
      
     input:
-    file 'genome.index.fa' from genome_file 
-    file annotation_file
-    file genome_index from genome_index.first()
+    file transcriptome_index from transcriptome_index.first()
     set pair_id, file(read1), file(read2) from read_pairs
  
     output:
-    set pair_id, "tophat_out/accepted_hits.bam" into bam
+    set pair_id, "tx_map.bam" into bam
  
     """
-    tophat2 -p ${task.cpus} --GTF $annotation_file genome.index ${read1} ${read2}
+    bowtie2 -x transcriptome.index -p ${task.cpus} -1 ${read1} -2 ${read2} | samtools view -@ ${task.cpus} -Sb - | samtools sort -@ ${task.cpus} - tx_map
     """
 }
- 
- 
+
 /*
  * Step 3. Assemples the transcript by using the "cufflinks" 
  */
