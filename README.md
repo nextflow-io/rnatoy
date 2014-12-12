@@ -12,6 +12,8 @@ How execute it
 
 2) Install Nextflow (version 0.10.0 or higher)
 
+    curl -fsSL get.nextflow.io | bash
+
 3) Pull the required Docker image as shown below 
 
     docker pull nextflow/rnatoy:1.0

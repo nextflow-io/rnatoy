@@ -90,39 +90,54 @@ read_pairs = reads1
 genome_file = file(params.genome)
 annotation_file = file(params.annot)
  
- 
+
 /*
- * Step 1. Builds the genome index required by the mapping process
+ * Step 1. Prepare the transcriptome from reference genome and annotation
+ */
+ process prepareTranscriptome {
+    input:
+    file genome_file
+    file annotation_file
+    
+    output:
+    file "transcriptome.idx.fa" into transcriptome
+    
+    """
+    rsem-prepare-reference -gtf ${annotation_file} ${genome_file} transcriptome
+    """
+
+ }
+
+/*
+ * Step 2. Builds the transcriptome index required by the mapping process
  */
 process buildIndex {
     input:
-    file genome_file
+    file transcriptome_file from transcriptome
      
     output:
-    file 'genome.index*' into genome_index
+    file 'transcriptome.index*' into transcriptome_index
        
     """
-    bowtie2-build ${genome_file} genome.index
+    bowtie2-build ${transcriptome_file} transcriptome.index
     """
  
 }
- 
+
 /*
- * Step 2. Maps each read-pair by using Tophat2 mapper tool
+ * Step 3. Maps each read-pair by using the Bowtie2 mapper tool
  */
 process mapping {
      
     input:
-    file 'genome.index.fa' from genome_file 
-    file annotation_file
-    file genome_index from genome_index.first()
+    file transcriptome_index from transcriptome_index.first()
     set pair_id, file(read1), file(read2) from read_pairs
  
     output:
-    set pair_id, "tophat_out/accepted_hits.bam" into bam
+    set pair_id, "tx_map.bam" into bam
  
     """
-    tophat2 -p ${task.cpus} --GTF $annotation_file genome.index ${read1} ${read2}
+    bowtie2 -x transcriptome.index -p ${task.cpus} -1 ${read1} -2 ${read2} | samtools view -@ ${task.cpus} -Sb - | samtools sort -@ ${task.cpus} - tx_map
     """
 }
 
@@ -150,7 +165,7 @@ process merge {
 
 
 /*
- * Step 4. Assemples the transcript by using the "cufflinks" 
+ * Step 4. Assembles the transcripts by using the "cufflinks" 
  */
 process makeTranscript {
     input:
@@ -212,6 +227,3 @@ def readPrefix( actual, template ) {
     
     return null
 }
-  
-
-
