@@ -1,4 +1,6 @@
 machine:
+  java:
+    version: openjdk7
   services:
     - docker
     
