@@ -5,7 +5,7 @@ MAINTAINER Paolo Di Tommaso <paolo.ditommaso@gmail.com>
 #
 # Install pre-requistes
 #
-RUN apt-get install -q -y samtools
+RUN apt-get install -q -y samtools python 
   
 #
 # RNA-Seq tools 
@@ -32,4 +32,4 @@ RUN apt-get install -q -y libncurses5-dev libncursesw5-dev && \
 #
 # Finalize environment
 #
-ENV PATH /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/opt/bowtie2:/opt/rsem:/opt/cufflinks
+ENV PATH /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/opt/bowtie:/opt/rsem:/opt/cufflinks
