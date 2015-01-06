@@ -1,1 +1,5 @@
 .git
+.nextflow*
+data
+work
+nextflow

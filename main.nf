@@ -50,30 +50,29 @@ log.info "chunkSize          : ${params.chunkSize}"
  * part of the name
  */
 
-count1 = 0
 reads1 = Channel
             .fromPath( params.pair1 )
             .ifEmpty { error "Cannot find any reads matching: ${params.pair1}" }
-            .splitFastq(by: params.chunkSize, file: true) { chunk, source -> 
-               def prefix = readPrefix(source, params.pair1)
-               log.debug "read1 chunk: $chunk -- prefix: $prefix"
-               tuple( prefix, chunk ) 
-            }
-            
+            .map { path -> 
+                    def prefix = readPrefix(path, params.pair1)
+                    log.debug "Splitting read1: [$prefix] $path"
+                    tuple( prefix, path ) 
+                 }
+            .splitFastq(by: params.chunkSize, file: true)
 
 /*
  * as above for "_2" read pairs
  */
 
-count2 = 0
 reads2 = Channel
             .fromPath( params.pair2 )
             .ifEmpty { error "Cannot find any reads matching: ${params.pair2}" }
-            .splitFastq(by: params.chunkSize, file:true) { chunk, source ->
-               def prefix = readPrefix(source, params.pair2)
-               log.debug "read2 chunk: $chunk -- prefix: $prefix"
-               tuple( prefix, chunk ) 
-            } 
+            .map { path -> 
+                    def prefix = readPrefix(path, params.pair2)
+                    log.debug "Splitting read2: [$prefix] $path"
+                    tuple( prefix, path ) 
+                 }
+            .splitFastq(by: params.chunkSize, file:true)
      
 /*
  * Match the pairs emittedb by "read1" and "read2" channels having the same 'key'
@@ -82,7 +81,7 @@ reads2 = Channel
 read_pairs = reads1
         .phase(reads2)
         .ifEmpty { error "Cannot find any matching reads" }
-        .map { pair1, pair2 -> [ pair1[0], pair1[1], pair2[1] ] }
+        .map { pair1, pair2 -> tuple(pair1[0], pair1[1], pair2[1]) }
  
 /*
  * the reference genome file
