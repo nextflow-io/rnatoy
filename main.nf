@@ -73,7 +73,7 @@ reads2 = Channel
 read_pairs = reads1
                 .phase(reads2)
                 .ifEmpty { error "Cannot find any matching reads" }
-                .map { pair1, pair2 -> [ pair1[0], pair1[1], pair2[1] ] }
+                .map { pair1, pair2 -> tuple(pair1[0], pair1[1], pair2[1]) }
  
 /*
  * the reference genome file

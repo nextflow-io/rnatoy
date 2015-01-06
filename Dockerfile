@@ -1,20 +1,11 @@
-FROM debian:wheezy
+FROM pditommaso/dkrbase:1.1
+
 MAINTAINER Paolo Di Tommaso <paolo.ditommaso@gmail.com>
-
-RUN apt-get update --fix-missing && \
-  apt-get install -q -y bc wget curl vim nano unzip make gcc g++ gfortran && \
-  apt-get clean 
-
-#
-# Create the home folder 
-#
-RUN mkdir -p /root
-ENV HOME /root
 
 #
 # Install pre-requistes
 #
-RUN apt-get install -q -y samtools
+RUN apt-get install -q -y samtools python 
   
 #
 # RNA-Seq tools 
@@ -25,7 +16,7 @@ RUN wget -q -O bowtie.zip http://sourceforge.net/projects/bowtie-bio/files/bowti
   ln -s /opt/bowtie2-2.2.3/ /opt/bowtie && \
   rm bowtie.zip 
   
-RUN wget -q http://cufflinks.cbcb.umd.edu/downloads/cufflinks-2.2.1.Linux_x86_64.tar.gz && \
+RUN wget -q http://cole-trapnell-lab.github.io/cufflinks/assets/downloads/cufflinks-2.2.1.Linux_x86_64.tar.gz && \
   tar xf cufflinks-2.2.1.Linux_x86_64.tar.gz -C /opt/ && \
   ln -s /opt/cufflinks-2.2.1.Linux_x86_64/ /opt/cufflinks && \
   rm cufflinks-2.2.1.Linux_x86_64.tar.gz 
