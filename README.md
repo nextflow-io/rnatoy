@@ -16,7 +16,7 @@ How execute it
 
 3) Pull the required Docker image as shown below 
 
-    docker pull nextflow/rnatoy:1.1
+    docker pull nextflow/rnatoy:1.2
 
 
 4) Launch the pipeline execution 
