@@ -110,10 +110,11 @@ process mapping {
     set pair_id, file(read1), file(read2) from read_pairs
  
     output:
-    set pair_id, "tophat_out/accepted_hits.bam" into bam
+    set pair_id, "accepted_hits.bam" into bam
  
     """
     tophat2 -p ${task.cpus} --GTF $annotation_file genome.index ${read1} ${read2}
+    mv tophat_out/accepted_hits.bam .
     """
 }
  
