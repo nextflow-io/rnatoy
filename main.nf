@@ -47,34 +47,37 @@ log.info "pair2              : ${params.pair2}"
  * emits all reads ending with "_1" suffix and map them to pair containing the common
  * part of the name
  */
-reads1 = Channel
+Channel
     .fromPath( params.pair1 )
     .ifEmpty { error "Cannot find any reads matching: ${params.pair1}" }
     .map { path -> 
        def prefix = readPrefix(path, params.pair1)
        tuple(prefix, path) 
     }
+    .set { reads1 } 
   
 /*
  * as above for "_2" read pairs
  */
-reads2 = Channel
+Channel
     .fromPath( params.pair2 )
     .ifEmpty { error "Cannot find any reads matching: ${params.pair2}" }
     .map { path -> 
        def prefix = readPrefix(path, params.pair2)
        tuple(prefix, path) 
     }
+    .set { reads2 }     
      
 /*
  * Match the pairs emittedb by "read1" and "read2" channels having the same 'key'
  * and emit a new pair containing the expected read-pair files
  */
-read_pairs = reads1
-                .phase(reads2)
-                .ifEmpty { error "Cannot find any matching reads" }
-                .map { pair1, pair2 -> tuple(pair1[0], pair1[1], pair2[1]) }
- 
+reads1
+	.phase(reads2)
+	.ifEmpty { error "Cannot find any matching reads" }
+	.map { pair1, pair2 -> tuple(pair1[0], pair1[1], pair2[1]) }
+	.set { read_pairs } 
+
 /*
  * the reference genome file
  */
