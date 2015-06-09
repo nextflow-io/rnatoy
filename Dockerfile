@@ -1,16 +1,13 @@
-FROM pditommaso/dkrbase:1.2
+FROM pditommaso/sl65base
+MAINTAINER paolo.ditommaso@gmail.com
 
-MAINTAINER Paolo Di Tommaso <paolo.ditommaso@gmail.com>
 
-#
-# Install pre-requistes
-#
-RUN apt-get update --fix-missing && \
-  apt-get install -q -y samtools python 
-  
-#
-# RNA-Seq tools 
-# 
+RUN wget -q -O- 'http://downloads.sourceforge.net/project/samtools/samtools/0.1.18/samtools-0.1.18.tar.bz2?r=http%3A%2F%2Fsourceforge.net%2Fprojects%2Fsamtools%2Ffiles%2Fsamtools%2F0.1.18%2F&ts=1430746369&use_mirror=kent' \
+  | tar xj && \
+  cd samtools-* && \ 
+  make && \ 
+  find . -maxdepth 1 -perm /a+x -exec cp {} /usr/local/bin \; && \
+  cd - && rm -rf samtools-*
 
 RUN wget -q -O bowtie.zip http://sourceforge.net/projects/bowtie-bio/files/bowtie2/2.2.3/bowtie2-2.2.3-linux-x86_64.zip/download && \
   unzip bowtie.zip -d /opt/ && \
@@ -31,4 +28,4 @@ RUN \
 #
 # Finalize environment
 #
-ENV PATH /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/opt/bowtie:/opt/tophat:/opt/cufflinks
+ENV PATH /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/opt/bowtie:/opt/tophat:/opt/cufflinks 
