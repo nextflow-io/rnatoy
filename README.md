@@ -1,5 +1,5 @@
-Toy RNA pipeline 
-=================
+RNA-Seq toy pipeline 
+======================
 
 A proof of concept of a RNA-Seq pipeline intended to show Nextflow
 scripting and reproducibility capabilities.
@@ -16,7 +16,7 @@ How execute it
 
 3) Pull the required Docker image as shown below 
 
-    docker pull nextflow/rnatoy:1.2
+    docker pull nextflow/rnatoy:sl65
 
 
 4) Launch the pipeline execution 
