@@ -89,7 +89,7 @@ annotation_file = file(params.annot)
  * Step 1. Builds the genome index required by the mapping process
  */
 process buildIndex {
-    tag { genome_file.baseName }
+    tag "$genome_file.baseName"
     
     input:
     file genome_file
@@ -107,7 +107,7 @@ process buildIndex {
  * Step 2. Maps each read-pair by using Tophat2 mapper tool
  */
 process mapping {
-    tag { pair_id }
+    tag "$pair_id"
      
     input:
     file 'genome.index.fa' from genome_file 
@@ -129,7 +129,7 @@ process mapping {
  * Step 3. Assemples the transcript by using the "cufflinks" 
  */
 process makeTranscript {
-    tag { pair_id } 
+    tag "$pair_id"
     
     input:
     file 'anno.gtf' from annotation_file
