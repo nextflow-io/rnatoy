@@ -40,6 +40,7 @@ Dependencies
  * Java VM 7 or later
  * [Docker 1.0 or later](http://www.docker.io)
  * [Nextflow 0.15.0 or later](http://nextflow.io)
+ * [AWS CLI tools](https://aws.amazon.com/cli/)
  
 For the execution of the pipeline without using the Docker engine follow the installation steps in the included Dockerfile 
     
