@@ -30,8 +30,7 @@
  * Defines some parameters in order to specify the refence genomes
  * and read pairs by using the command line options
  */
-params.pair1 = "$baseDir/data/ggal/*_1.fq"
-params.pair2 = "$baseDir/data/ggal/*_2.fq"
+params.pairs = "$baseDir/data/ggal/*_{1,2}.fq"
 params.annot = "$baseDir/data/ggal/ggal_1_48850000_49020000.bed.gff"
 params.genome = "$baseDir/data/ggal/ggal_1_48850000_49020000.Ggal71.500bpflank.fa"
 
@@ -39,44 +38,7 @@ log.info "R N A T O Y   P I P E L I N E    "
 log.info "================================="
 log.info "genome             : ${params.genome}"
 log.info "annotat            : ${params.annot}"
-log.info "pair1              : ${params.pair1}"
-log.info "pair2              : ${params.pair2}"
-
- 
-/*
- * emits all reads ending with "_1" suffix and map them to pair containing the common
- * part of the name
- */
-Channel
-    .fromPath( params.pair1 )
-    .ifEmpty { error "Cannot find any reads matching: ${params.pair1}" }
-    .map { path -> 
-       def prefix = readPrefix(path, params.pair1)
-       tuple(prefix, path) 
-    }
-    .set { reads1 } 
-  
-/*
- * as above for "_2" read pairs
- */
-Channel
-    .fromPath( params.pair2 )
-    .ifEmpty { error "Cannot find any reads matching: ${params.pair2}" }
-    .map { path -> 
-       def prefix = readPrefix(path, params.pair2)
-       tuple(prefix, path) 
-    }
-    .set { reads2 }     
-     
-/*
- * Match the pairs emittedb by "read1" and "read2" channels having the same 'key'
- * and emit a new pair containing the expected read-pair files
- */
-reads1
-	.phase(reads2)
-	.ifEmpty { error "Cannot find any matching reads" }
-	.map { pair1, pair2 -> tuple(pair1[0], pair1[1], pair2[1]) }
-	.set { read_pairs } 
+log.info "pairs              : ${params.pairs}"
 
 /*
  * the reference genome file
@@ -84,6 +46,20 @@ reads1
 genome_file = file(params.genome)
 annotation_file = file(params.annot)
  
+/*
+ * Create the `read_pairs` channel that emits tuples containing three elements:
+ * the pair ID, the first read-pair file and the second read-pair file 
+ */
+Channel
+    .fromPath( params.pairs )
+    .ifEmpty { error "Cannot find any reads matching: ${params.pairs}" }
+    .map { path -> 
+       def prefix = readPrefix(path, params.pairs)
+       tuple(prefix, path) 
+    }
+    .groupTuple(size: 2, sort: true)
+    .map { id, files -> tuple(id, files[0], files[1])}
+    .set { read_pairs } 
  
 /*
  * Step 1. Builds the genome index required by the mapping process
@@ -176,10 +152,16 @@ def readPrefix( Path actual, template ) {
     if( !filePattern.contains('*') && !filePattern.contains('?') ) 
         filePattern = '*' + filePattern 
   
-    def regex = filePattern.replace('.','\\.').replace('*','(.*)').replace('?','(.?)')
+    def regex = filePattern
+                    .replace('.','\\.')
+                    .replace('*','(.*)')
+                    .replace('?','(.?)')
+                    .replace('{','(?:')
+                    .replace('}',')')
+                    .replace(',','|')
 
-    def matcher = (fileName =~ /$regex/  )
-    if( matcher.matches() ) { 
+    def matcher = (fileName =~ /$regex/)
+    if( matcher.matches() ) {  
         def end = matcher.end(matcher.groupCount() )      
         def prefix = fileName.substring(0,end)
         while(prefix.endsWith('-') || prefix.endsWith('_') || prefix.endsWith('.') ) 
@@ -190,4 +172,3 @@ def readPrefix( Path actual, template ) {
     
     return null
 }
-  
