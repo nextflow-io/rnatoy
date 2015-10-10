@@ -102,7 +102,7 @@ process mapping {
  
  
 /*
- * Step 3. Assemples the transcript by using the "cufflinks" 
+ * Step 3. Assembles the transcript by using the "cufflinks" tool
  */
 process makeTranscript {
     tag "$pair_id"
@@ -120,7 +120,7 @@ process makeTranscript {
 }
  
 /*
- * Step 4. Collects the trabscripts files and print them
+ * Step 4. Collects the transcripts files and print them
  */
 transcripts
   .subscribe { tuple ->
