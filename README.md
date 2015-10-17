@@ -4,6 +4,7 @@ RNA-Seq toy pipeline
 A proof of concept of a RNA-Seq pipeline intended to show Nextflow
 scripting and reproducibility capabilities.
 
+![CircleCI status](https://circleci.com/gh/nextflow-io/rnatoy.png?style=shield)
 
 How execute it
 ----------------
