@@ -76,7 +76,6 @@ process buildIndex {
     """
     bowtie2-build ${genome_file} genome.index
     """
- 
 }
  
 /*
