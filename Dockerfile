@@ -12,9 +12,9 @@ RUN apt-get update --fix-missing && \
 # RNA-Seq tools 
 # 
 
-RUN wget -q -O bowtie.zip http://sourceforge.net/projects/bowtie-bio/files/bowtie2/2.2.3/bowtie2-2.2.3-linux-x86_64.zip/download && \
+RUN wget -q -O bowtie.zip https://sourceforge.net/projects/bowtie-bio/files/bowtie2/2.2.7/bowtie2-2.2.7-linux-x86_64.zip/download && \
   unzip bowtie.zip -d /opt/ && \
-  ln -s /opt/bowtie2-2.2.3/ /opt/bowtie && \
+  ln -s /opt/bowtie2-2.2.7/ /opt/bowtie && \
   rm bowtie.zip 
   
 RUN \
@@ -24,9 +24,9 @@ RUN \
   
   
 RUN \
-  wget -q http://ccb.jhu.edu/software/tophat/downloads/tophat-2.0.12.Linux_x86_64.tar.gz -O- \
+  wget -q https://ccb.jhu.edu/software/tophat/downloads/tophat-2.1.0.Linux_x86_64.tar.gz -O- \
   | tar xz -C /opt/ && \
-  ln -s /opt/tophat-2.0.12.Linux_x86_64/ /opt/tophat 
+  ln -s /opt/tophat-2.1.0.Linux_x86_64/ /opt/tophat 
   
 #
 # Finalize environment
