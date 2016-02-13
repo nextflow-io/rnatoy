@@ -105,28 +105,21 @@ process mapping {
  */
 process makeTranscript {
     tag "$pair_id"
-    
+    publishDir "$PWD", mode: 'copy'  
+       
     input:
     file 'anno.gtf' from annotation_file
     set pair_id, file(bam_file) from bam
      
     output:
-    set pair_id, file('transcripts.gtf') into transcripts
+    set pair_id, file('transcript_*.gtf') into transcripts
  
     """
     cufflinks --no-update-check -q -p ${task.cpus} -G anno.gtf ${bam_file}
+    mv transcripts.gtf transcript_${pair_id}.gtf
     """
 }
  
-/*
- * Step 4. Collects the transcripts files and print them
- */
-transcripts
-  .subscribe { tuple ->
-    def fileName = "transcript_${tuple[0]}.gtf" 
-    tuple[1].copyTo(fileName)
-    println "Saving: $fileName"
-  }
 
 
 /* 
