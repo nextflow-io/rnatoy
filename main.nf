@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2015, Centre for Genomic Regulation (CRG) and the authors.
+ * Copyright (c) 2013-2016, Centre for Genomic Regulation (CRG) and the authors.
  *
  *   This file is part of 'RNA-Toy'.
  *
