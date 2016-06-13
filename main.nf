@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2015, Centre for Genomic Regulation (CRG) and the authors.
+ * Copyright (c) 2013-2016, Centre for Genomic Regulation (CRG) and the authors.
  *
  *   This file is part of 'RNA-Toy'.
  *
@@ -30,7 +30,7 @@
  * Defines some parameters in order to specify the refence genomes
  * and read pairs by using the command line options
  */
-params.pairs = "$baseDir/data/ggal/*_{1,2}.fq"
+params.reads = "$baseDir/data/ggal/*_{1,2}.fq"
 params.annot = "$baseDir/data/ggal/ggal_1_48850000_49020000.bed.gff"
 params.genome = "$baseDir/data/ggal/ggal_1_48850000_49020000.Ggal71.500bpflank.fa"
 
@@ -38,7 +38,7 @@ log.info "R N A T O Y   P I P E L I N E    "
 log.info "================================="
 log.info "genome             : ${params.genome}"
 log.info "annotat            : ${params.annot}"
-log.info "pairs              : ${params.pairs}"
+log.info "reads              : ${params.reads}"
 
 /*
  * the reference genome file
@@ -51,14 +51,8 @@ annotation_file = file(params.annot)
  * the pair ID, the first read-pair file and the second read-pair file 
  */
 Channel
-    .fromPath( params.pairs )
-    .ifEmpty { error "Cannot find any reads matching: ${params.pairs}" }
-    .map { path -> 
-       def prefix = readPrefix(path, params.pairs)
-       tuple(prefix, path) 
-    }
-    .groupTuple(size: 2, sort: true)
-    .map { id, files -> tuple(id, files[0], files[1])}
+    .fromFilePairs( params.reads, flat: true )
+    .ifEmpty { error "Cannot find any reads matching: ${params.reads}" }
     .set { read_pairs } 
  
 /*
@@ -98,8 +92,7 @@ process mapping {
     mv tophat_out/accepted_hits.bam .
     """
 }
- 
- 
+  
 /*
  * Step 3. Assembles the transcript by using the "cufflinks" tool
  */
@@ -120,47 +113,6 @@ process makeTranscript {
     """
 }
  
-
-
-/* 
- * Helper function, given a file Path 
- * returns the file name region matching a specified glob pattern
- * starting from the beginning of the name up to last matching group.
- * 
- * For example: 
- *   readPrefix('/some/data/file_alpha_1.fa', 'file*_1.fa' )
- * 
- * Returns: 
- *   'file_alpha'
- */
- 
-def readPrefix( Path actual, template ) {
-
-    final fileName = actual.getFileName().toString()
-
-    def filePattern = template.toString()
-    int p = filePattern.lastIndexOf('/')
-    if( p != -1 ) filePattern = filePattern.substring(p+1)
-    if( !filePattern.contains('*') && !filePattern.contains('?') ) 
-        filePattern = '*' + filePattern 
-  
-    def regex = filePattern
-                    .replace('.','\\.')
-                    .replace('*','(.*)')
-                    .replace('?','(.?)')
-                    .replace('{','(?:')
-                    .replace('}',')')
-                    .replace(',','|')
-
-    def matcher = (fileName =~ /$regex/)
-    if( matcher.matches() ) {  
-        def end = matcher.end(matcher.groupCount() )      
-        def prefix = fileName.substring(0,end)
-        while(prefix.endsWith('-') || prefix.endsWith('_') || prefix.endsWith('.') ) 
-          prefix=prefix[0..-2]
-          
-        return prefix
-    }
-    
-    return null
+workflow.onComplete { 
+	println ( workflow.success ? "Done!" : "Oops .. something went wrong" )
 }

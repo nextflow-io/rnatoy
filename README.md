@@ -11,7 +11,7 @@ How execute it
 
 1) Install Docker on your computer. Read more here https://docs.docker.com/
 
-2) Install Nextflow (version 0.17.x or higher)
+2) Install Nextflow (version 0.20.x or higher)
 
     curl -fsSL get.nextflow.io | bash
 
