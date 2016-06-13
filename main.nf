@@ -51,7 +51,7 @@ annotation_file = file(params.annot)
  * the pair ID, the first read-pair file and the second read-pair file 
  */
 Channel
-    .fromFilePairs( params.reads, flat: true )
+    .fromFilePairs( params.reads )
     .ifEmpty { error "Cannot find any reads matching: ${params.reads}" }
     .set { read_pairs } 
  
@@ -82,13 +82,13 @@ process mapping {
     file 'genome.index.fa' from genome_file 
     file annotation_file
     file genome_index from genome_index.first()
-    set pair_id, file(read1), file(read2) from read_pairs
+    set pair_id, file(reads) from read_pairs
  
     output:
     set pair_id, "accepted_hits.bam" into bam
  
     """
-    tophat2 -p ${task.cpus} --GTF $annotation_file genome.index ${read1} ${read2}
+    tophat2 -p ${task.cpus} --GTF $annotation_file genome.index ${reads}
     mv tophat_out/accepted_hits.bam .
     """
 }
