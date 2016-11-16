@@ -33,12 +33,14 @@
 params.reads = "$baseDir/data/ggal/*_{1,2}.fq"
 params.annot = "$baseDir/data/ggal/ggal_1_48850000_49020000.bed.gff"
 params.genome = "$baseDir/data/ggal/ggal_1_48850000_49020000.Ggal71.500bpflank.fa"
+params.outdir = 'results'
 
 log.info "R N A T O Y   P I P E L I N E    "
 log.info "================================="
 log.info "genome             : ${params.genome}"
 log.info "annotat            : ${params.annot}"
 log.info "reads              : ${params.reads}"
+log.info "outdir             : ${params.outdir}"
 
 /*
  * the reference genome file
@@ -98,7 +100,7 @@ process mapping {
  */
 process makeTranscript {
     tag "$pair_id"
-    publishDir "$PWD", mode: 'copy'  
+    publishDir params.outdir, mode: 'copy'  
        
     input:
     file 'anno.gtf' from annotation_file
