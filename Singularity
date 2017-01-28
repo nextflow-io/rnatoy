@@ -1,2 +1,3 @@
 Bootstrap:docker
-From:nextflow/rnatoy@sha256:9ac0345b5851b2b20913cb4e6d469df77cf1232bafcadf8fd929535614a85c75
+From:nextflow:rnatoy:peerj5515
+
