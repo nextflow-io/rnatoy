@@ -1,3 +1,2 @@
 Bootstrap:docker
-From:nextflow:rnatoy:peerj5515
-
+From:nextflow/rnatoy:peerj5515
