@@ -31,4 +31,4 @@ RUN \
 #
 # Finalize environment
 #
-ENV PATH /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/opt/bowtie:/opt/tophat:/opt/cufflinks
+ENV PATH=$PATH:/opt/bowtie:/opt/tophat:/opt/cufflinks
