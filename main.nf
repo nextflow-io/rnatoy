@@ -70,7 +70,7 @@ process buildIndex {
     file 'genome.index*' into genome_index
        
     """
-    bowtie2-build --threads ${task.cpus} ${genome_file} genome.index
+    bowtie2-build --threads ${task.cpus} ${genome} genome.index
     """
 }
  
