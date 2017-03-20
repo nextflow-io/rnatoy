@@ -64,7 +64,7 @@ process buildIndex {
     tag "$genome_file.baseName"
     
     input:
-    file genome_file
+    file genome from genome_file
      
     output:
     file 'genome.index*' into genome_index
@@ -81,16 +81,16 @@ process mapping {
     tag "$pair_id"
      
     input:
-    file 'genome.index.fa' from genome_file 
-    file annotation_file
-    file genome_index from genome_index.first()
+    file genome from genome_file 
+    file annot from annotation_file
+    file index from genome_index
     set pair_id, file(reads) from read_pairs
  
     output:
     set pair_id, "accepted_hits.bam" into bam
  
     """
-    tophat2 -p ${task.cpus} --GTF $annotation_file genome.index ${reads}
+    tophat2 -p ${task.cpus} --GTF $annot genome.index $reads
     mv tophat_out/accepted_hits.bam .
     """
 }
@@ -103,14 +103,14 @@ process makeTranscript {
     publishDir params.outdir, mode: 'copy'  
        
     input:
-    file 'anno.gtf' from annotation_file
+    file annot from annotation_file
     set pair_id, file(bam_file) from bam
      
     output:
     set pair_id, file('transcript_*.gtf') into transcripts
  
     """
-    cufflinks --no-update-check -q -p ${task.cpus} -G anno.gtf ${bam_file}
+    cufflinks --no-update-check -q -p $task.cpus -G $annot $bam_file
     mv transcripts.gtf transcript_${pair_id}.gtf
     """
 }
