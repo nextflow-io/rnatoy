@@ -35,12 +35,15 @@ params.annot = "$baseDir/data/ggal/ggal_1_48850000_49020000.bed.gff"
 params.genome = "$baseDir/data/ggal/ggal_1_48850000_49020000.Ggal71.500bpflank.fa"
 params.outdir = 'results'
 
-log.info "R N A T O Y   P I P E L I N E    "
-log.info "================================="
-log.info "genome             : ${params.genome}"
-log.info "annotat            : ${params.annot}"
-log.info "reads              : ${params.reads}"
-log.info "outdir             : ${params.outdir}"
+log.info """\
+         R N A T O Y   P I P E L I N E    
+         =============================
+         genome: ${params.genome}
+         annot : ${params.annot}
+         reads : ${params.reads}
+         outdir: ${params.outdir}
+         """
+         .stripIndent()
 
 /*
  * the reference genome file
