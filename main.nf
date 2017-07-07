@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2016, Centre for Genomic Regulation (CRG) and the authors.
+ * Copyright (c) 2013-2017, Centre for Genomic Regulation (CRG) and the authors.
  *
  *   This file is part of 'RNA-Toy'.
  *
@@ -20,7 +20,7 @@
 /* 
  * Proof of concept Nextflow based RNA-Seq pipeline
  * 
- * Authors
+ * Authors:
  * Paolo Di Tommaso <paolo.ditommaso@gmail.com>
  * Emilio Palumbo <emiliopalumbo@gmail.com> 
  */ 
