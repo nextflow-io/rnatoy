@@ -5,7 +5,7 @@ A proof of concept of a RNA-Seq pipeline intended to show Nextflow
 scripting and reproducibility capabilities.
 
 [![nextflow](https://img.shields.io/badge/nextflow-%E2%89%A50.24.0-brightgreen.svg)](http://nextflow.io)
-![CircleCI status](https://circleci.com/gh/nextflow-io/rnatoy.png?style=shield)
+[![Build Status](https://travis-ci.org/nextflow-io/rnatoy.svg?branch=master)](https://travis-ci.org/nextflow-io/rnatoy)
 
 How execute it
 ----------------
