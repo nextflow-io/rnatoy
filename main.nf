@@ -44,33 +44,27 @@ log.info """\
          outdir: ${params.outdir}
          """
          .stripIndent()
-
-/*
- * the reference genome file
- */
-genome_file = file(params.genome)
-annotation_file = file(params.annot)
  
 /*
- * Create the `read_pairs` channel that emits tuples containing three elements:
+ * Create the `read_pairs_ch` channel that emits tuples containing three elements:
  * the pair ID, the first read-pair file and the second read-pair file 
  */
 Channel
     .fromFilePairs( params.reads )
     .ifEmpty { error "Cannot find any reads matching: ${params.reads}" }
-    .set { read_pairs } 
+    .set { read_pairs_ch } 
  
 /*
  * Step 1. Builds the genome index required by the mapping process
  */
 process buildIndex {
-    tag "$genome_file.baseName"
+    tag "$genome.baseName"
     
     input:
-    file genome from genome_file
+    path genome from params.genome
      
     output:
-    file 'genome.index*' into genome_index
+    path 'genome.index*' into index_ch
        
     """
     bowtie2-build --threads ${task.cpus} ${genome} genome.index
@@ -84,13 +78,13 @@ process mapping {
     tag "$pair_id"
      
     input:
-    file genome from genome_file 
-    file annot from annotation_file
-    file index from genome_index
-    set pair_id, file(reads) from read_pairs
+    path genome from params.genome 
+    path annot from params.annot
+    path index from index_ch
+    tuple val(pair_id), path(reads) from read_pairs_ch
  
     output:
-    set pair_id, "accepted_hits.bam" into bam
+    set pair_id, "accepted_hits.bam" into bam_ch
  
     """
     tophat2 -p ${task.cpus} --GTF $annot genome.index $reads
@@ -106,11 +100,11 @@ process makeTranscript {
     publishDir params.outdir, mode: 'copy'  
        
     input:
-    file annot from annotation_file
-    set pair_id, file(bam_file) from bam
+    path annot from params.annot
+    tuple val(pair_id), path(bam_file) from bam_ch
      
     output:
-    set pair_id, file('transcript_*.gtf') into transcripts
+    tuple val(pair_id), path('transcript_*.gtf')
  
     """
     cufflinks --no-update-check -q -p $task.cpus -G $annot $bam_file
@@ -119,5 +113,5 @@ process makeTranscript {
 }
  
 workflow.onComplete { 
-	println ( workflow.success ? "Done!" : "Oops .. something went wrong" )
+	log.info ( workflow.success ? "Done!" : "Oops .. something went wrong" )
 }

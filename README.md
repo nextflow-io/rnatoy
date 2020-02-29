@@ -12,7 +12,7 @@ How execute it
 
 1) Install Docker on your computer. Read more here https://docs.docker.com/
 
-2) Install Nextflow (version 0.24.x or higher)
+2) Install Nextflow (version 20.01.0 or later)
 
     `curl -fsSL get.nextflow.io | bash`
 
